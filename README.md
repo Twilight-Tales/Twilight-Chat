@@ -1,7 +1,8 @@
 # Twilight Chat Framework
 
-![Twilight Chat Framework Logo](path_to_your_logo.png)
-
+<p align="center">
+<img src="assets/twilight_chat_framework_logo.png" alt="Twilight Chat Framework Logo" width="256"/>
+</p>
 Twilight Chat Framework is a modern development framework designed to facilitate the creation of chatbot applications leveraging Large Language Models (LLMs). Unlike traditional intent-based systems, Twilight focuses on a newer approach, such as prompt engineering with LLMs, to deliver rich and dynamic conversational experiences.
 
 ## Concept
@@ -31,14 +32,14 @@ As chatbots evolve, there's a transition from rigid, intent-based systems to mor
 <!-- This section should contain installation instructions, basic setup, and a "hello world" example. -->
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/your_username/twilight_chat_framework.git
-    ```
+```bash
+git clone https://github.com/your_username/twilight_chat_framework.git
+```
 
 2. Set up your environment:
-   ```bash
-   # Instructions here
-    ```
+```bash
+# Instructions here
+```
 
 3. Your first chatbot:
 ```python
