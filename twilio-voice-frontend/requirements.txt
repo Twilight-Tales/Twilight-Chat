@@ -1,0 +1,10 @@
+twilio 
+azure-cognitiveservices-speech 
+Wave 
+Flask 
+flask-sock 
+soundfile 
+pyngrok
+python-dotenv
+langchain==0.1.1
+ollama
