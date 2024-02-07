@@ -1,0 +1,5 @@
+img[alt="Twilight Chat Logo"] {
+    max-width: 256px; /* or any other size */
+    width: 25%; /* for responsive sizing */
+    height: auto; /* to maintain aspect ratio */
+}

@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  app:
+    build: .
+    image: twilight-chat
+    command: ["python", "-m", "chainlit", "run", "/app/app.py", "-h", "--port", "8080"]
+    env_file:
+      - ./.env
+    environment:
+      - REDIS_URL=redis://:${PASSWORD}@redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    restart: always  # app will restart if it crashes or host reboots
+
+  redis:
+    image: redis/redis-stack:latest
+    environment:
+      REDIS_ARGS: "--appendonly no --requirepass ${PASSWORD}"
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - ./local-data/:/data
+    restart: always  # app will restart if it crashes or host reboots
