@@ -1,3 +1,4 @@
 langchain
 chainlit
 openai
+ibm-generative-ai

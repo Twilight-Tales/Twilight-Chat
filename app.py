@@ -4,9 +4,9 @@ from langchain_community.chat_models import ChatOpenAI
 
 import chainlit as cl
 
-from typing import Any, Dict, List, Optional
-from langchain.schema import BaseMemory
-from pydantic import BaseModel
+from genai import Client, Credentials
+from genai.extensions.langchain import LangChainChatInterface
+from genai.schema import DecodingMethod, TextGenerationParameters
 
 from langchain.chains import ConversationChain
 from langchain.memory import (
@@ -20,38 +20,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# class BookMemory(BaseMemory, BaseModel):
-#     """Memory class for book chapter content."""
-#
-#     # Define dictionary to store information about entities.
-#     entities: dict = {}  # we are not using this
-#
-#     # Define key to pass information about entities into prompt.
-#     memory_key: str = "chapter_context"
-#
-#     def clear(self):
-#         self.entities = {}  # we are not using this, just a placeholder because it is required by the BaseMemory
-#
-#     @property
-#     def memory_variables(self) -> List[str]:
-#         """Define the variables we are providing to the prompt."""
-#         return [self.memory_key]
-#
-#     def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, str]:
-#         """Load the memory variables, in this case the entity key."""
-#         with open("books.txt", "r") as fp:
-#             book = fp.read()
-#         # Return combined information about entities to put into context.
-#         return {self.memory_key: book}
-#
-#     def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
-#         """Save context from this conversation to buffer."""
-#         # We are using static knowledge, so we don't need to save anything.
-#         pass
-
 @cl.on_chat_start
 async def on_chat_start():
-    llm = ChatOpenAI(streaming=True, temperature=0, model_name="gpt-4-1106-preview")
+    # llm = ChatOpenAI(streaming=True, temperature=0, model_name="gpt-4-1106-preview")
+    llm = LangChainChatInterface(
+        model_id=os.environ.get('MODEL_ID'),
+        client=Client(credentials=Credentials.from_env()),
+        parameters=TextGenerationParameters(
+            decoding_method=DecodingMethod.SAMPLE,
+            max_new_tokens=300,
+            min_new_tokens=10,
+            temperature=0.5,
+            top_k=50,
+            top_p=1,
+            stop_sequences=['\nElderly:',
+                            '\n```\n',
+                            '<<END>>',
+                            '</s>',
+                            '\n\n'],
+            repetition_penalty=1,
+        ),
+    )
     template = """
 Objective: You are a bookclub host that helps elderly people. Ask questions about the chapter they just read to 
 keep them engaging in the reading activity. To help them stay mentally and cognitively healthy.
