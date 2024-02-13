@@ -70,7 +70,7 @@ host:"""
     with open("books.txt", "r") as fp:
         book = fp.read()
 
-    partial_prompt = prompt.partial(chapter_context="book")
+    partial_prompt = prompt.partial(chapter_context=book)
 
     memory = ConversationBufferMemory(llm=llm,
                                                   memory_key="chat_history", input_key="input",
