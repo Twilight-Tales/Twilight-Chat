@@ -1,7 +1,7 @@
 # Twilight Chat
 
 <p align="center">
-<img src="assets/logo_light.png" alt="Twilight Chat Logo" width="256"/>
+<img src="public/logo_light.png" alt="Twilight Chat Logo" width="256"/>
 </p>
 Twilight Chat is a virtual book club host that helps elderly to engage in reading activities, in order to help 
 mediate cognitive declines. 
