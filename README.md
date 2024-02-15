@@ -1,31 +1,24 @@
-# Twilight Chat Framework
+# Twilight Chat
 
 <p align="center">
-<img src="assets/twilight_chat_framework_logo.png" alt="Twilight Chat Framework Logo" width="256"/>
+<img src="assets/logo_light.png" alt="Twilight Chat Logo" width="256"/>
 </p>
-Twilight Chat Framework is a modern development framework designed to facilitate the creation of chatbot applications leveraging Large Language Models (LLMs). Unlike traditional intent-based systems, Twilight focuses on a newer approach, such as prompt engineering with LLMs, to deliver rich and dynamic conversational experiences.
+Twilight Chat is a virtual book club host that helps elderly to engage in reading activities, in order to help 
+mediate cognitive declines. 
+
 
 ## Concept
 
-As chatbots evolve, there's a transition from rigid, intent-based systems to more fluid, Large Language Model (LLM) based process. The Twilight Chat Framework aims to bridge this evolution, providing developers with tools to harness the power of LLMs, all while maintaining flexibility in deployment and integration.
+As chatbots evolve, ...
 
 ## Features
 
 - **Flexible Integration**: Develop chatbots for various front-end delivery mechanisms, integration with Twilio and other system.
 - **Database Integration**: Robust support for databases to store and retrieve essential chatbot data.
-- **Vector Store with Milvus**: Efficiently handle vector storage for tasks like similarity search, leveraging [Milvus](https://milvus.io/).
 - **Language Model Integration**: Seamless integration with third-party LLMs like OpenAI or self-hosted models.
 - **API Deployment**: Deploy your chatbot logic as a scalable API, ready to integrate with various front-end channels.
 - **Developer-Centric Tools**: Comprehensive tools, from conversation flow design to testing and deployment.
 
-## Development Roadmap
-
-1. **Core Framework Development**: Building the fundamental architecture to support chatbot creation and deployment.
-2. **Milvus Integration**: Implementing vector storage and retrieval mechanisms using Milvus.
-3. **Language Model Connectors**: Creating connectors for popular LLM platforms and tools.
-4. **API and Frontend Integration**: Tools and guidelines for connecting the chatbot logic to various front-end platforms.
-5. **Interactive Development UI**: A user-friendly interface for developers to design, test, and refine conversation flows.
-6. **Documentation and Tutorials**: Comprehensive guides, API references, and tutorials to get developers started.
 
 ## Getting Started
 
@@ -37,13 +30,24 @@ git clone https://github.com/your_username/twilight_chat_framework.git
 ```
 
 2. Set up your environment:
+
+Copy `example.env` into `.env` and change the values.
+
+Create and activate your python virtual env:
 ```bash
-# Instructions here
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-3. Your first chatbot:
-```python
-# Sample code to demonstrate a basic chatbot setup
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Run chainlit chatbot:
+
+```bash
+chainlit run app.py -w
 ```
 
 ## Contributing
