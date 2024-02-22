@@ -33,6 +33,22 @@ git clone https://github.com/your_username/twilight_chat_framework.git
 
 Copy `example.env` into `.env` and change the values.
 
+3. Docker:
+
+You need to use `host.docker.internal` instead of `localhost` for docker to access vllm on the host machine.
+
+To just run the app:
+```bash
+docker build -t twilight .
+docker run --env-file ./.env -p 1680:1680 -d twilight
+```
+
+Hot reload during development:
+```bash
+docker run -v $(pwd):/app --env-file ./.env -p 1680:1680 --add-host=host.docker.internal:host-gateway twilight \
+python -m chainlit run /app/app.py -h --port 1680 -w
+```
+
 Create and activate your python virtual env:
 ```bash
 python -m venv .venv

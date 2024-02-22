@@ -1,6 +1,7 @@
 import os
 
 from langchain_community.chat_models import ChatOpenAI
+from langchain_community.llms import VLLMOpenAI
 
 import chainlit as cl
 
@@ -17,41 +18,69 @@ from langchain.memory import (
 from langchain.prompts import PromptTemplate
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
+str_gpt4 = "GPT-4"
+str_mistral = "Mistral"
+str_llama = "Llama"
 
-# class BookMemory(BaseMemory, BaseModel):
-#     """Memory class for book chapter content."""
-#
-#     # Define dictionary to store information about entities.
-#     entities: dict = {}  # we are not using this
-#
-#     # Define key to pass information about entities into prompt.
-#     memory_key: str = "chapter_context"
-#
-#     def clear(self):
-#         self.entities = {}  # we are not using this, just a placeholder because it is required by the BaseMemory
-#
-#     @property
-#     def memory_variables(self) -> List[str]:
-#         """Define the variables we are providing to the prompt."""
-#         return [self.memory_key]
-#
-#     def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, str]:
-#         """Load the memory variables, in this case the entity key."""
-#         with open("books.txt", "r") as fp:
-#             book = fp.read()
-#         # Return combined information about entities to put into context.
-#         return {self.memory_key: book}
-#
-#     def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
-#         """Save context from this conversation to buffer."""
-#         # We are using static knowledge, so we don't need to save anything.
-#         pass
+llm_dict = {
+    str_gpt4: ChatOpenAI(streaming=True,
+                         temperature=0,
+                         model_name="gpt-4-1106-preview"),
+    str_mistral: VLLMOpenAI(
+        openai_api_key="EMPTY",
+        # openai_api_base="http://host.docker.internal:8000/v1",
+        openai_api_base=os.environ.get('VLLM_URL'),
+        model_name=os.environ.get('MISTRAL_ID'),
+        model_kwargs={"stop": ['\nHuman:', 'Elderly:',
+                               '\nElderly:'
+                               '\n```\n',
+                               '<<END>>',
+                               '</s>',
+                               '\n\n']},
+    ),
+    str_llama: VLLMOpenAI(
+        openai_api_key="EMPTY",
+        # openai_api_base="http://host.docker.internal:8000/v1",
+        openai_api_base=os.environ.get('VLLM_URL'),
+        model_name=os.environ.get('LLAMA_ID'),
+        model_kwargs={"stop": ['\nHuman:', 'Elderly:',
+                               '\nElderly:'
+                               '\n```\n',
+                               '<<END>>',
+                               '</s>',
+                               '\n\n']},
+    )
+}
+
+
+@cl.set_chat_profiles
+async def chat_profile():
+    return [
+        cl.ChatProfile(
+            name=str_gpt4,
+            markdown_description="The underlying LLM model is **GPT-4**.",
+            icon="https://picsum.photos/250",
+        ),
+        cl.ChatProfile(
+            name=str_mistral,
+            markdown_description="The underlying LLM model is **Mistral-7B-Instruct-v0.1**.",
+            icon="https://picsum.photos/150",
+        ),
+        cl.ChatProfile(
+            name=str_llama,
+            markdown_description="The underlying LLM model is **Llama-13B-chat**.",
+            icon="https://picsum.photos/200",
+        ),
+    ]
+
 
 @cl.on_chat_start
 async def on_chat_start():
-    llm = ChatOpenAI(streaming=True, temperature=0, model_name="gpt-4-1106-preview")
+    llm_choice = cl.user_session.get("chat_profile")
+    llm = llm_dict[llm_choice]
     template = """
 Objective: You are a bookclub host that helps elderly people. Ask questions about the chapter they just read to 
 keep them engaging in the reading activity. To help them stay mentally and cognitively healthy.
@@ -62,7 +91,7 @@ Book chapter:
 Current conversation:
 {chat_history}
 Elderly: {input}
-host:"""
+Host:"""
     prompt = PromptTemplate(
         input_variables=["chat_history", "input", "chapter_context"], template=template
     )
@@ -73,8 +102,8 @@ host:"""
     partial_prompt = prompt.partial(chapter_context=book)
 
     memory = ConversationBufferMemory(llm=llm,
-                                                  memory_key="chat_history", input_key="input",
-                                                  human_prefix="Patient", ai_prefix="Therapist")
+                                      memory_key="chat_history", input_key="input",
+                                      human_prefix="Elderly", ai_prefix="Host")
 
     # book_memory = BookMemory(input_key="input")
     # # Combined: use multiple memories
@@ -93,7 +122,6 @@ async def on_message(message: cl.Message):
         message.content, callbacks=[cl.AsyncLangchainCallbackHandler()]
     )
     await cl.Message(content=res).send()
-
 
 # @cl.password_auth_callback
 # def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
