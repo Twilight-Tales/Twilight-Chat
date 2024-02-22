@@ -19,42 +19,19 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 load_dotenv()
 
-
-# class BookMemory(BaseMemory, BaseModel):
-#     """Memory class for book chapter content."""
-#
-#     # Define dictionary to store information about entities.
-#     entities: dict = {}  # we are not using this
-#
-#     # Define key to pass information about entities into prompt.
-#     memory_key: str = "chapter_context"
-#
-#     def clear(self):
-#         self.entities = {}  # we are not using this, just a placeholder because it is required by the BaseMemory
-#
-#     @property
-#     def memory_variables(self) -> List[str]:
-#         """Define the variables we are providing to the prompt."""
-#         return [self.memory_key]
-#
-#     def load_memory_variables(self, inputs: Dict[str, Any]) -> Dict[str, str]:
-#         """Load the memory variables, in this case the entity key."""
-#         with open("books.txt", "r") as fp:
-#             book = fp.read()
-#         # Return combined information about entities to put into context.
-#         return {self.memory_key: book}
-#
-#     def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
-#         """Save context from this conversation to buffer."""
-#         # We are using static knowledge, so we don't need to save anything.
-#         pass
-
 @cl.on_chat_start
 async def on_chat_start():
     llm = ChatOpenAI(streaming=True, temperature=0, model_name="gpt-4-1106-preview")
     template = """
-Objective: You are a bookclub host that helps elderly people. Ask questions about the chapter they just read to 
-keep them engaging in the reading activity. To help them stay mentally and cognitively healthy.
+Objective: You are the host of a bookclub that helps elderly people with dementia. 
+You have to prompt them and see whether or not they fully understand the content of the book. 
+Context will be provided and generate prompts based on that. 
+Ask open-ended questions but make sure that a 5th grader could answer them. 
+After a conversation has concluded, ask a question relating to the book again and then move on to the next chapter. 
+Make sure that it prompts the user to want to read the next chapter. 
+Tailor it to elderly people. 
+Only ask one question per time and keep them less than or equal to 2 sentences. 
+Pause and wait for the user to give a response to the question, then analyze the response given by the elderly person and provide feedback as well as the next question.
 
 Book chapter:
 {chapter_context}
