@@ -1,5 +1,16 @@
+import { useEffect } from "react";
+
 import React, { useState } from 'react';
+
+import { ChainlitAPI, sessionState, useChatSession } from "@chainlit/react-client";
+import { useRecoilValue } from "recoil";
 import './App.css';
+import ChatbotComponent from './components/chat';
+import InformationComponent from './components/information';
+
+const CHAINLIT_SERVER = "http://localhost:9999";
+
+const apiClient = new ChainlitAPI(CHAINLIT_SERVER);
 
 function App() {
   const [isInfoVisible, setInfoVisible] = useState(false);
@@ -14,6 +25,20 @@ function App() {
   });
   const toggleInfo = () => setInfoVisible(!isInfoVisible);
 
+  const { connect } = useChatSession();
+  const session = useRecoilValue(sessionState);
+
+  useEffect(() => {
+    if (session?.socket.connected) {
+      return
+    }
+    connect({
+      client: apiClient
+    });
+    
+  }, [session, connect]);
+
+
   return (
     <div className="App">
       {isInfoVisible && <InformationComponent {...bookDetails} />}
@@ -22,76 +47,6 @@ function App() {
         <button onClick={toggleInfo} className="info-toggle">
           i
         </button>
-      </div>
-    </div>
-  );
-}
-
-function InformationComponent({ book, author, pages, currentChapter, currentPage, startDate, progress }) {
-  return (
-    <div className="information-panel">
-      <h2>Information</h2>
-      <div className="book-details">
-        <p><strong>Book:</strong> {book}</p>
-        <p><strong>Author:</strong> {author}</p>
-        <p><strong>Pages:</strong> {pages}</p>
-      </div>
-      <div className="current-status">
-        <p><strong>Current Status:</strong></p>
-        <p>Chapter {currentChapter} Page {currentPage}</p>
-        <progress value={progress} max="100">{progress}%</progress>
-        <p>{progress}% finished</p>
-      </div>
-      <div className="start-date">
-        <p><strong>Date Started:</strong> {startDate}</p>
-      </div>
-    </div>
-  );
-}
-
-function ChatbotComponent() {
-  const [messages, setMessages] = useState([]);
-  const [userInput, setUserInput] = useState('');
-
-  const handleSendMessage = () => {
-    if (!userInput.trim()) return;
-    setMessages([...messages, { sender: 'user', text: userInput }]);
-    // Simulate a bot response
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { sender: 'bot', text: `Echo: "${userInput}"` },
-    ]);
-    setUserInput('');
-  };
-
-  const handleInputChange = (event) => {
-    setUserInput(event.target.value);
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
-  return (
-    <div className="chatbot-component">
-      <div className="conversation">
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.sender}`}>
-            {message.text}
-          </div>
-        ))}
-      </div>
-      <div className="message-input">
-        <input
-          type="text"
-          value={userInput}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Type here..."
-        />
-        <button onClick={handleSendMessage}>Send</button>
       </div>
     </div>
   );

@@ -57,19 +57,25 @@
 }
 
 .conversation {
-  height: 300px;
+  height: 600px;
+  width: 100%;
   overflow-y: auto;
   margin-bottom: 20px;
+  scroll-behavior: smooth; /* Enable smooth scrolling */
 }
 
 .message {
+  background-color: #f8d7da;
+  align-self: flex-start;
   padding: 10px;
   margin: 5px 0;
   border-radius: 20px;
   max-width: 70%;
+  font-size: 32px; /* Adjust the font size as needed */
 }
 
 .message.user {
+  font-size: 16px; /* Adjust the font size as needed */
   background-color: #d1e7dd;
   align-self: flex-end;
 }
