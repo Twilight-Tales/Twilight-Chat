@@ -24,5 +24,69 @@ for book in books:
     st.write(f"Reference Code: {book[3]}")
     st.write("---")
 
+### Added Tables: User, Book Library table, Book Reading History table, Book Reading History table, and Chat History table
+c.execute('''
+    CREATE TABLE User (
+    user_id INTEGER PRIMARY KEY,
+    username STRING NOT NULL,
+    password STRING NOT NULL, -- Assuming encryption is handled in application layer
+    session_token STRING,
+    session_expiration DATETIME,
+    update_token STRING UNIQUE
+);
+''')
+
+
+# Book Library table
+c.execute('''
+    CREATE TABLE BookLibrary (
+        book_id INTEGER PRIMARY KEY,
+        book_title STRING NOT NULL,
+        author STRING,
+        genre STRING,
+        link_to_text STRING -- Assuming this is a URL to the text
+    );
+''')
+
+
+#Book Reading History table
+c.execute('''
+    CREATE TABLE BookReadingHistory (
+        reading_id INTEGER PRIMARY KEY,
+        book_title STRING NOT NULL,
+        chapter_title STRING,
+        p_id INTEGER,
+        user_id INTEGER,
+        FOREIGN KEY (user_id) REFERENCES User(user_id)
+        -- Assuming a link to BookLibrary is needed, we need a foreign key to book_id
+        -- FOREIGN KEY (p_id) REFERENCES BookLibrary(book_id)
+    );
+''')
+
+
+#Chat History table
+c.execute('''
+    CREATE TABLE ChatHistory (
+        ch_id INTEGER PRIMARY KEY,
+        time DATETIME NOT NULL,
+        user_id INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES User(user_id)
+    );
+''')
+
+
+#Assuming that the relationship between Book Reading History and Chat History
+#is many-to-many, we need an association table
+c.execute('''
+    CREATE TABLE ReadingChatAssociation (
+        ch_id INTEGER,
+        reading_id INTEGER,
+        PRIMARY KEY (ch_id, reading_id),
+        FOREIGN KEY (ch_id) REFERENCES ChatHistory(ch_id),
+        FOREIGN KEY (reading_id) REFERENCES BookReadingHistory(reading_id)
+    );
+''')
+
+
 # Close the database connection
 conn.close()
