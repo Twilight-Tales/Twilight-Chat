@@ -44,7 +44,7 @@ host:"""
         input_variables=["chat_history", "input", "chapter_context"], template=template
     )
 
-    with open("books.txt", "r") as fp:
+    with open("books.txt", "r", encoding='utf-8') as fp:
         book = fp.read()
 
     partial_prompt = prompt.partial(chapter_context=book)
