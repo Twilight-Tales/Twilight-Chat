@@ -81,6 +81,7 @@ class DatabaseDriver(object):
             reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
             book_title TEXT NOT NULL,
             chapter_pid TEXT NOT NULL,
+            time DATETIME NOT NULL
         ''')
 
     def create_chat_history_table(self):
