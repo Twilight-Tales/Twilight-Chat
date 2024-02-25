@@ -1,5 +1,6 @@
 import streamlit as st
 import sqlite3
+import hashlib
 
 #one database driver within app
 def singleton(cls):
@@ -42,9 +43,9 @@ class DatabaseDriver(object):
             user_id String PRIMARY KEY,
             username TEXT NOT NULL,
             password TEXT NOT NULL,
-            ch_id TEXT NOT NULL,
+            ch_id TEXT,
             FOREIGN KEY (ch_id) REFERENCES ChatHistory(ch_id));
-            session_token TEXT NOT NULL,
+            session_token TEXT UNIQUE NOT NULL,
             session_expiration DATETIME NOT NULL,
             update_token TEXT UNIQUE
         );
@@ -126,6 +127,41 @@ class DatabaseDriver(object):
                 "Reference Code": row[6]
             })
         return books
+    def create_user(self, username, password):
+        """
+        Create a user
+        Requires an username and password
+        """
+        cursor = self.c.cursor()
+
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        #TODO: implement tokens if needed
+        cursor.execute('INSERT INTO Users (username, password) VALUES (?, ?)', (username, hashed_password))
+
+        self.c.commit()
+        
+        return cursor.lastrowid 
+
+    #TODO: implement chainlit 
+    def login_user(self, username, password):
+        """
+        Login an user
+        Requires username and password
+        """
+        cursor = self.c.cursor()
+
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        cursor.execute('SELECT * FROM users WHERE username=? AND password=?', (username, hashed_password))
+        user = cursor.fetchone()
+
+        if user:
+            return user
+        else:
+            return None 
+
+
 
 """
 # Retrieve data from the database
