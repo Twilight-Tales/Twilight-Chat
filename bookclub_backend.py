@@ -27,48 +27,61 @@ class DatabaseDriver(object):
         # Connect to the SQLite database
         self.c = sqlite3.connect('bookclub.db', check_same_thread = False)
 
+        #Debugging purposes I reset the tables 
+        self.c.execute("DROP TABLE IF EXISTS Users;")
+        self.c.execute("DROP TABLE IF EXISTS Books;")
+        self.c.execute("DROP TABLE IF EXISTS BookReadingHistory;")
+        self.c.execute("DROP TABLE IF EXISTS ChatHistory;")
+        self.c.execute("DROP TABLE IF EXISTS BooksHistoryAssociation;")
+
         self.create_user_table()
         self.create_book_library_table()
         self.create_book_history_table()
         self.create_chat_history_table()
         self.create_library_history_assoctable()
-        #self.c.close() TODO: Where to close
 
     def create_user_table(self):
         """Create a database of users
         """
-        # TODO:Assuming encryption is handled in application layer 
-        self.c.execute('''
-        CREATE TABLE IF NOT EXISTS Users (
-            user_id String PRIMARY KEY,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            ch_id TEXT,
-            FOREIGN KEY (ch_id) REFERENCES ChatHistory(ch_id));
-            session_token TEXT UNIQUE NOT NULL,
-            session_expiration DATETIME NOT NULL,
-            update_token TEXT UNIQUE
-        );
+        # TODO: do you want tokens?
+        # session_token TEXT UNIQUE NOT NULL,
+        #         session_expiration DATETIME NOT NULL,
+        #         update_token TEXT UNIQUE,
+        try:
+            self.c.execute('''
+            CREATE TABLE IF NOT EXISTS Users (
+                user_id TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                password TEXT NOT NULL,
+                ch_id TEXT,
+                FOREIGN KEY (ch_id) REFERENCES ChatHistory(ch_id)
+            );
         ''')
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
+
 
     def create_book_library_table(self):
         """
         Create the books table if it doesn't exist
         
         """
-        #TODO: what is avatar_name, is that the author? 
-        #TODO: are we divding text files by chapter of a specific book, or just by the book 
-
-        self.c.execute(
-        '''CREATE TABLE IF NOT EXISTS Books(
-            book_id INTEGER PRIMARY KEY AUTOINCREMENT
-            avatar_name TEXT NOT NULL, 
-            author TEXT NOT NULL,
-            book_title TEXT NOT NULL,
-            book_contents TEXT NOT NULL, 
-            voice_speed INTEGER NOT NULL, 
-            reference_code TEXT NOT NULL
-        ''')
+        try:
+            self.c.execute(
+            '''CREATE TABLE IF NOT EXISTS Books(
+                book_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                avatar_name TEXT NOT NULL, 
+                author TEXT NOT NULL,
+                book_title TEXT NOT NULL,
+                book_contents TEXT NOT NULL, 
+                voice_speed INTEGER NOT NULL, 
+                reference_code TEXT NOT NULL
+                );
+            ''')
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
 
     def create_book_history_table(self):
         """
@@ -77,40 +90,54 @@ class DatabaseDriver(object):
         """
         
         # Assuming a link to Book_Library is needed, we need a foreign key to book_id  
-        self.c.execute(
-        '''CREATE TABLE BookReadingHistory (
-            reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            book_title TEXT NOT NULL,
-            chapter_pid TEXT NOT NULL,
-            time DATETIME NOT NULL
-        ''')
+        try:
+            self.c.execute(
+            '''CREATE TABLE IF NOT EXISTS BookReadingHistory  (
+                reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                book_title TEXT NOT NULL,
+                chapter_pid TEXT NOT NULL,
+                time DATETIME NOT NULL
+            );
+            ''')
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
 
     def create_chat_history_table(self):
         """
         Create a chat history table
         """
         #Chat History table
-        self.c.execute(
-        '''CREATE TABLE ChatHistory (
-            ch_id INTEGER PRIMARY KEY,
-            time DATETIME NOT NULL
-            reading_id INTEGER NOT NULL UNIQUE,
-            FOREIGN KEY (reading_id) REFERENCES BookReadingHistory (reading_id)
-        ''')
+        try:
+            self.c.execute(
+            '''CREATE TABLE IF NOT EXISTS ChatHistory (
+                ch_id INTEGER PRIMARY KEY,
+                time DATETIME NOT NULL,
+                reading_id INTEGER NOT NULL UNIQUE,
+                FOREIGN KEY (reading_id) REFERENCES BookReadingHistory (reading_id)
+            );'''
+            )
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
     def create_library_history_assoctable(self):
         """
         Association table between book library and
         books 
         """
-        self.c.execute('''
-            CREATE TABLE BooksHistoryAssociation (
-                id INTEGER PRIMARY KEY AUTOINCREMENT
-                book_id INTEGER NOT NULL,
-                reading_id INTEGER NOT NULL,
-                FOREIGN KEY (book_id) REFERENCES Books(book_id),
-                FOREIGN KEY (reading_id) REFERENCES BookReadingHistory(reading_id)
-            );'''
-        )
+        try:
+            self.c.execute('''
+                CREATE TABLE IF NOT EXISTS BooksHistoryAssociation (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    book_id INTEGER NOT NULL,
+                    reading_id INTEGER NOT NULL,
+                    FOREIGN KEY (book_id) REFERENCES Books(book_id),
+                    FOREIGN KEY (reading_id) REFERENCES BookReadingHistory(reading_id)
+                );'''
+            )
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
     
     def get_all_books(self):
         """
@@ -119,7 +146,7 @@ class DatabaseDriver(object):
         cursor = self.c.execute("SELECT * FROM Books;")
         books = []
         #Retrieve data from the database
-        for row in books:
+        for row in cursor:
             books.append({
                 "Avatar Name": row[1],
                 "Book Contents": row[4],
@@ -127,6 +154,7 @@ class DatabaseDriver(object):
                 "Reference Code": row[6]
             })
         return books
+    
     def create_user(self, username, password):
         """
         Create a user
@@ -136,14 +164,12 @@ class DatabaseDriver(object):
 
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-        #TODO: implement tokens if needed
         cursor.execute('INSERT INTO Users (username, password) VALUES (?, ?)', (username, hashed_password))
 
         self.c.commit()
         
         return cursor.lastrowid 
 
-    #TODO: implement chainlit 
     def login_user(self, username, password):
         """
         Login an user
@@ -157,10 +183,9 @@ class DatabaseDriver(object):
         user = cursor.fetchone()
 
         if user:
-            return user
+            return True, user
         else:
-            return None 
-
+            return False, None 
 
 
 """
@@ -182,6 +207,5 @@ for book in books:
     st.write(f"Reference Code: {book[3]}")
     st.write("---")
 """
-
 
 DatabaseDriver = singleton(DatabaseDriver)

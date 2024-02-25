@@ -14,6 +14,9 @@ from langchain.memory import (
     ConversationBufferMemory,
 )
 
+import bookclub_backend as db
+DB = db.DatabaseDriver()
+
 from langchain.prompts import PromptTemplate
 
 from dotenv import load_dotenv
@@ -72,11 +75,20 @@ async def on_message(message: cl.Message):
     await cl.Message(content=res).send()
 
 
+
 # @cl.password_auth_callback
-# def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
+# async def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
 #     # Fetch the user matching username from your database
 #     # and compare the hashed password with the value stored in the database
-#     if (username, password) == (os.environ.get('USERNAME'), os.environ.get('PASSWORD')):
-#         return cl.AppUser(username="patient", role="ADMIN", provider="credentials")
+#     success, user = db.login_user(username, password)
+#     if success:
+#         return user.serialize()
 #     else:
 #         return None
+    """
+    if (username, password) == (os.environ.get('USERNAME'), os.environ.get('PASSWORD')):
+        return cl.AppUser(username="patient", role="ADMIN", provider="credentials")
+    else:
+        return None
+    """
+    
