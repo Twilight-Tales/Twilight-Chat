@@ -155,6 +155,7 @@ class DatabaseDriver(object):
             })
         return books
     
+    #TODO: need token?
     def create_user(self, username, password):
         """
         Create a user
