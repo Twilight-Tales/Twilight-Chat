@@ -1,14 +1,169 @@
 import streamlit as st
 import sqlite3
+import hashlib
 
-# Connect to the SQLite database
-conn = sqlite3.connect('bookclub.db')
-c = conn.cursor()
+#one database driver within app
+def singleton(cls):
+    instances = {}
 
-# Create the books table if it doesn't exist
-c.execute('''CREATE TABLE IF NOT EXISTS books
-             (avatar_name TEXT, book_contents TEXT, voice_speed INTEGER, reference_code TEXT)''')
+    def getinstance():
+        if cls not in instances:
+            instances[cls] = cls()
+        return instances[cls]
 
+    return getinstance
+
+class DatabaseDriver(object):
+    """
+    Databse driver for the bookclub app.
+    Handles with reading and writing data
+    within the database
+    """
+    def __init__(self):
+        """
+        Secure a connction w/ the database
+        and store it into the instance 'c'
+        """
+        # Connect to the SQLite database
+        self.c = sqlite3.connect('bookclub.db', check_same_thread = False)
+
+        self.create_user_table()
+        self.create_book_library_table()
+        self.create_book_history_table()
+        self.create_chat_history_table()
+        self.create_library_history_assoctable()
+        #self.c.close() TODO: Where to close
+
+    def create_user_table(self):
+        """Create a database of users
+        """
+        # TODO:Assuming encryption is handled in application layer 
+        self.c.execute('''
+        CREATE TABLE IF NOT EXISTS Users (
+            user_id String PRIMARY KEY,
+            username TEXT NOT NULL,
+            password TEXT NOT NULL,
+            ch_id TEXT,
+            FOREIGN KEY (ch_id) REFERENCES ChatHistory(ch_id));
+            session_token TEXT UNIQUE NOT NULL,
+            session_expiration DATETIME NOT NULL,
+            update_token TEXT UNIQUE
+        );
+        ''')
+
+    def create_book_library_table(self):
+        """
+        Create the books table if it doesn't exist
+        
+        """
+        #TODO: what is avatar_name, is that the author? 
+        #TODO: are we divding text files by chapter of a specific book, or just by the book 
+
+        self.c.execute(
+        '''CREATE TABLE IF NOT EXISTS Books(
+            book_id INTEGER PRIMARY KEY AUTOINCREMENT
+            avatar_name TEXT NOT NULL, 
+            author TEXT NOT NULL,
+            book_title TEXT NOT NULL,
+            book_contents TEXT NOT NULL, 
+            voice_speed INTEGER NOT NULL, 
+            reference_code TEXT NOT NULL
+        ''')
+
+    def create_book_history_table(self):
+        """
+        Book Reading History table
+        #TODO: what exactly do we want chapter_pid to be?
+        """
+        
+        # Assuming a link to Book_Library is needed, we need a foreign key to book_id  
+        self.c.execute(
+        '''CREATE TABLE BookReadingHistory (
+            reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            book_title TEXT NOT NULL,
+            chapter_pid TEXT NOT NULL,
+            time DATETIME NOT NULL
+        ''')
+
+    def create_chat_history_table(self):
+        """
+        Create a chat history table
+        """
+        #Chat History table
+        self.c.execute(
+        '''CREATE TABLE ChatHistory (
+            ch_id INTEGER PRIMARY KEY,
+            time DATETIME NOT NULL
+            reading_id INTEGER NOT NULL UNIQUE,
+            FOREIGN KEY (reading_id) REFERENCES BookReadingHistory (reading_id)
+        ''')
+    def create_library_history_assoctable(self):
+        """
+        Association table between book library and
+        books 
+        """
+        self.c.execute('''
+            CREATE TABLE BooksHistoryAssociation (
+                id INTEGER PRIMARY KEY AUTOINCREMENT
+                book_id INTEGER NOT NULL,
+                reading_id INTEGER NOT NULL,
+                FOREIGN KEY (book_id) REFERENCES Books(book_id),
+                FOREIGN KEY (reading_id) REFERENCES BookReadingHistory(reading_id)
+            );'''
+        )
+    
+    def get_all_books(self):
+        """
+        Get all books in the database
+        """
+        cursor = self.c.execute("SELECT * FROM Books;")
+        books = []
+        #Retrieve data from the database
+        for row in books:
+            books.append({
+                "Avatar Name": row[1],
+                "Book Contents": row[4],
+                "Voice Speed": row[5],
+                "Reference Code": row[6]
+            })
+        return books
+    def create_user(self, username, password):
+        """
+        Create a user
+        Requires an username and password
+        """
+        cursor = self.c.cursor()
+
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        #TODO: implement tokens if needed
+        cursor.execute('INSERT INTO Users (username, password) VALUES (?, ?)', (username, hashed_password))
+
+        self.c.commit()
+        
+        return cursor.lastrowid 
+
+    #TODO: implement chainlit 
+    def login_user(self, username, password):
+        """
+        Login an user
+        Requires username and password
+        """
+        cursor = self.c.cursor()
+
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        cursor.execute('SELECT * FROM users WHERE username=? AND password=?', (username, hashed_password))
+        user = cursor.fetchone()
+
+        if user:
+            return user
+        else:
+            return None 
+
+
+
+"""
 # Retrieve data from the database
 c.execute("SELECT avatar_name, book_contents, voice_speed, reference_code FROM bookclub")
 books = c.fetchall()
@@ -16,77 +171,17 @@ books = c.fetchall()
 # Display the information using Streamlit
 st.title("Book Club App")
 st.write("Here are the books in the database:")
+"""
 
+#TODO: turn into somesort of api thingy? 
+"""
 for book in books:
     st.write(f"Avatar Name: {book[0]}")
     st.write(f"Book Contents: {book[1]}")
     st.write(f"Voice Speed: {book[2]}")
     st.write(f"Reference Code: {book[3]}")
     st.write("---")
-
-### Added Tables: User, Book Library table, Book Reading History table, Book Reading History table, and Chat History table
-c.execute('''
-    CREATE TABLE User (
-    user_id INTEGER PRIMARY KEY,
-    username STRING NOT NULL,
-    password STRING NOT NULL, -- Assuming encryption is handled in application layer
-    session_token STRING,
-    session_expiration DATETIME,
-    update_token STRING UNIQUE
-);
-''')
+"""
 
 
-# Book Library table
-c.execute('''
-    CREATE TABLE BookLibrary (
-        book_id INTEGER PRIMARY KEY,
-        book_title STRING NOT NULL,
-        author STRING,
-        genre STRING,
-        link_to_text STRING -- Assuming this is a URL to the text
-    );
-''')
-
-
-#Book Reading History table
-c.execute('''
-    CREATE TABLE BookReadingHistory (
-        reading_id INTEGER PRIMARY KEY,
-        book_title STRING NOT NULL,
-        chapter_title STRING,
-        p_id INTEGER,
-        user_id INTEGER,
-        FOREIGN KEY (user_id) REFERENCES User(user_id)
-        -- Assuming a link to BookLibrary is needed, we need a foreign key to book_id
-        -- FOREIGN KEY (p_id) REFERENCES BookLibrary(book_id)
-    );
-''')
-
-
-#Chat History table
-c.execute('''
-    CREATE TABLE ChatHistory (
-        ch_id INTEGER PRIMARY KEY,
-        time DATETIME NOT NULL,
-        user_id INTEGER NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES User(user_id)
-    );
-''')
-
-
-#Assuming that the relationship between Book Reading History and Chat History
-#is many-to-many, we need an association table
-c.execute('''
-    CREATE TABLE ReadingChatAssociation (
-        ch_id INTEGER,
-        reading_id INTEGER,
-        PRIMARY KEY (ch_id, reading_id),
-        FOREIGN KEY (ch_id) REFERENCES ChatHistory(ch_id),
-        FOREIGN KEY (reading_id) REFERENCES BookReadingHistory(reading_id)
-    );
-''')
-
-
-# Close the database connection
-conn.close()
+DatabaseDriver = singleton(DatabaseDriver)
