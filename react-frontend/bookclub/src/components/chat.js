@@ -60,6 +60,7 @@ function ChatbotComponent() {
                 />
                 <button onClick={handleSendMessage}>Send</button>
             </div>
+            <div style={{ clear: 'both' }}></div>
         </div>
     );
 }

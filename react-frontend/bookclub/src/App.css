@@ -47,7 +47,7 @@
 .chatbot-component {
   display: flex;
   flex-direction: column;
-  max-width: 400px;
+  max-width: 100%;
   width: 100%;
   background-color: #f9f9f9;
   border-radius: 8px;
@@ -57,7 +57,7 @@
 }
 
 .conversation {
-  height: 600px;
+  height: 80vh; 
   width: 100%;
   overflow-y: auto;
   margin-bottom: 20px;
@@ -94,7 +94,7 @@
   border: 1px solid #ccc;
   border-radius: 20px;
   padding: 10px 20px;
-  margin-right: 10px;
+  margin-right: 50px;
 }
 
 .message-input button {
