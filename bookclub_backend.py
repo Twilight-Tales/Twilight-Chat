@@ -61,7 +61,23 @@ class DatabaseDriver(object):
             print("Error creating table: ", e)
             raise e
 
+    #TODO: chapter database
+    def create_chapter_table(self):
+        """
+        """
+        try:
+            self.c.execute('''
+            CREATE TABLE IF NOT EXISTS Chapter(
+                chapter_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                book_content TEXT NOT NULL,
+            );
+            ''')
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
 
+
+    #TODO: need pages field, how to connect to contents
     def create_book_library_table(self):
         """
         Create the books table if it doesn't exist
@@ -70,39 +86,18 @@ class DatabaseDriver(object):
         try:
             self.c.execute(
             '''CREATE TABLE IF NOT EXISTS Books(
-                book_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                avatar_name TEXT NOT NULL, 
+                book_id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 author TEXT NOT NULL,
                 book_title TEXT NOT NULL,
-                book_contents TEXT NOT NULL, 
-                voice_speed INTEGER NOT NULL, 
-                reference_code TEXT NOT NULL
+                reference_code TEXT NOT NULL,
+                chapter_id INTEGER,
+                FOREIGN KEY (chapter_id) REFERENCES Chapter(chapter_id)
                 );
             ''')
         except Exception as e:
             print("Error creating table: ", e)
             raise e
-
-    def create_book_history_table(self):
-        """
-        Book Reading History table
-        #TODO: what exactly do we want chapter_pid to be?
-        """
         
-        # Assuming a link to Book_Library is needed, we need a foreign key to book_id  
-        try:
-            self.c.execute(
-            '''CREATE TABLE IF NOT EXISTS BookReadingHistory  (
-                reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                book_title TEXT NOT NULL,
-                chapter_pid TEXT NOT NULL,
-                time DATETIME NOT NULL
-            );
-            ''')
-        except Exception as e:
-            print("Error creating table: ", e)
-            raise e
-
     def create_chat_history_table(self):
         """
         Create a chat history table
@@ -120,6 +115,27 @@ class DatabaseDriver(object):
         except Exception as e:
             print("Error creating table: ", e)
             raise e
+        
+    def create_book_history_table(self):
+        """
+        Book Reading History table
+        #TODO: what exactly do we want chapter_pid to be?
+        """
+        
+        try:
+            self.c.execute(
+            '''CREATE TABLE IF NOT EXISTS BookReadingHistory  (
+                reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                book_title TEXT NOT NULL,
+                current_chapter INTEGER NOT NULL,
+                current_page INTEGER NOT NULL,
+                time DATETIME NOT NULL
+            );
+            ''')
+        except Exception as e:
+            print("Error creating table: ", e)
+            raise e
+
     def create_library_history_assoctable(self):
         """
         Association table between book library and
@@ -154,7 +170,19 @@ class DatabaseDriver(object):
                 "Reference Code": row[6]
             })
         return books
+
+    #Getting Most Recent Book History 
+    # user id --> most recent chat history --> return most recent book history ?
     
+    def get_user_by_id(self):
+        pass
+    
+    def get_chat_history(self):
+        pass
+
+    def get_book_history(self):
+        pass
+
     def create_user(self, username, password):
         """
         Create a user
@@ -186,6 +214,7 @@ class DatabaseDriver(object):
             return True, user
         else:
             return False, None 
+    
 
 
 """

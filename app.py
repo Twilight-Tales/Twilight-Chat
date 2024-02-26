@@ -74,21 +74,14 @@ async def on_message(message: cl.Message):
     )
     await cl.Message(content=res).send()
 
-
-
-# @cl.password_auth_callback
-# async def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
-#     # Fetch the user matching username from your database
-#     # and compare the hashed password with the value stored in the database
-#     success, user = db.login_user(username, password)
-#     if success:
-#         return user.serialize()
-#     else:
-#         return None
-    """
-    if (username, password) == (os.environ.get('USERNAME'), os.environ.get('PASSWORD')):
-        return cl.AppUser(username="patient", role="ADMIN", provider="credentials")
+@cl.password_auth_callback
+async def auth_callback(username: str, password: str):
+    # Fetch the user matching username from your database
+    # and compare the hashed password with the value stored in the database
+    success, user = DB.login_user(username, password)
+    if success:
+        return cl.User(
+            identifier=user.user_id, metadata={"role": "Patient", "provider": user.password}
+        )
     else:
         return None
-    """
-    
