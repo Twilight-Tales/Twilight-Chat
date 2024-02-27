@@ -40,13 +40,12 @@ class DatabaseDriver(object):
         self.create_chat_history_table()
         self.create_library_history_assoctable()
 
+        #Testing purposes
+
+
     def create_user_table(self):
         """Create a database of users
         """
-        # TODO: do you want tokens?
-        # session_token TEXT UNIQUE NOT NULL,
-        #         session_expiration DATETIME NOT NULL,
-        #         update_token TEXT UNIQUE,
         try:
             self.c.execute('''
             CREATE TABLE IF NOT EXISTS Users (
@@ -61,7 +60,6 @@ class DatabaseDriver(object):
             print("Error creating table: ", e)
             raise e
 
-    #TODO: chapter database
     def create_chapter_table(self):
         """
         """
@@ -69,15 +67,16 @@ class DatabaseDriver(object):
             self.c.execute('''
             CREATE TABLE IF NOT EXISTS Chapter(
                 chapter_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                book_content TEXT NOT NULL,
+                chapter_number INTEGER NOT NULL,
+                chapter_title TEXT NOT NULL,
+                chapter_text TEXT NOT NULL,
+                FOREIGN KEY (book_id) REFERENCES Books(book_id)
             );
             ''')
         except Exception as e:
             print("Error creating table: ", e)
             raise e
 
-
-    #TODO: need pages field, how to connect to contents
     def create_book_library_table(self):
         """
         Create the books table if it doesn't exist
@@ -89,7 +88,7 @@ class DatabaseDriver(object):
                 book_id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 author TEXT NOT NULL,
                 book_title TEXT NOT NULL,
-                reference_code TEXT NOT NULL,
+                pages INTEGER NOT NULL,
                 chapter_id INTEGER,
                 FOREIGN KEY (chapter_id) REFERENCES Chapter(chapter_id)
                 );
@@ -119,7 +118,6 @@ class DatabaseDriver(object):
     def create_book_history_table(self):
         """
         Book Reading History table
-        #TODO: what exactly do we want chapter_pid to be?
         """
         
         try:
