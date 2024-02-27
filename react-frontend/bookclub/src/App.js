@@ -40,16 +40,26 @@ function App() {
 
 
   return (
-    <div className="App">
-      {isInfoVisible && <InformationComponent {...bookDetails} />}
-      <div className="chatbot">
-        <ChatbotComponent />
-        <button onClick={toggleInfo} className="info-toggle">
-          i
-        </button>
+      <div className="App">
+        <table>
+          <tr>
+            <td>
+              {isInfoVisible && <InformationComponent {...bookDetails} />}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div className="chatbot">
+                <ChatbotComponent />
+                <button onClick={toggleInfo} className="info-toggle">
+                  i
+                </button>
+              </div>
+            </td>
+          </tr>
+        </table>
       </div>
-    </div>
-  );
+    );
 }
 
 export default App;
