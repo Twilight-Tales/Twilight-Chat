@@ -30,8 +30,9 @@ class DatabaseDriver(object):
         #Debugging purposes I reset the tables 
         self.c.execute("DROP TABLE IF EXISTS Users;")
         self.c.execute("DROP TABLE IF EXISTS Books;")
-        self.c.execute("DROP TABLE IF EXISTS BookReadingHistory;")
-        self.c.execute("DROP TABLE IF EXISTS ChatHistory;")
+        self.c.execute("DROP TABLE IF EXISTS BookReadingHistories;")
+        self.c.execute("DROP TABLE IF EXISTS ChatHistories;")
+        self.c.execute("DROP TABLE IF EXISTS Chapters")
         self.c.execute("DROP TABLE IF EXISTS BooksHistoryAssociation;")
 
         self.create_user_table()
@@ -44,17 +45,18 @@ class DatabaseDriver(object):
 
 
     def create_user_table(self):
-        """Create a database of users
-            no explicit relationship
+        """
+        Create a database of users
+        no explicit relationship
         """
         try:
             self.c.execute('''
-            CREATE TABLE IF NOT EXISTS Users (
-                user_id TEXT PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS Users(
+                id TEXT PRIMARY KEY,
                 username TEXT NOT NULL,
                 password TEXT NOT NULL
             );
-        ''')
+            ''')
         except Exception as e:
             print("Error creating table: ", e)
             raise e
@@ -67,12 +69,12 @@ class DatabaseDriver(object):
         try:
             self.c.execute('''
             CREATE TABLE IF NOT EXISTS Chapters(
-                chapter_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 chapter_number INTEGER NOT NULL,
                 chapter_title TEXT NOT NULL,
                 chapter_text TEXT NOT NULL,
                 book_id INTEGER NOT NULL,
-                FOREIGN KEY (book_id) REFERENCES Books(book_id)
+                FOREIGN KEY(book_id) REFERENCES Books(id)
             );
             ''')
         except Exception as e:
@@ -83,14 +85,13 @@ class DatabaseDriver(object):
         """
         Create the books table if it doesn't exist
         Many to many relationship with Book reading histories
-        
         """
         try:
             self.c.execute(
             '''CREATE TABLE IF NOT EXISTS Books(
-                book_id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 author TEXT NOT NULL,
-                book_title TEXT NOT NULL,
+                title TEXT NOT NULL,
                 pages INTEGER NOT NULL
                 );
             ''')
@@ -104,22 +105,23 @@ class DatabaseDriver(object):
         User(one to many) Chat Histories
         BookReadingHistories(one to one)Chat Histories
         """
-        #Chat History table
+        # Chat History table
         try:
-            self.c.execute(
-            '''CREATE TABLE IF NOT EXISTS ChatHistories (
-                ch_id INTEGER PRIMARY KEY,
-                time DATETIME NOT NULL,
-                reading_id INTEGER NOT NULL UNIQUE,
-                FOREIGN KEY (reading_id) REFERENCES BookReadingHistories (reading_id),
-                user_id TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES Users(user_id)
-            );'''
-            )
+            self.c.execute('''
+                CREATE TABLE IF NOT EXISTS ChatHistories(
+                    id INTEGER PRIMARY KEY,
+                    time DATETIME NOT NULL,
+                    reading_id INTEGER NOT NULL UNIQUE,
+                    user_id, TEXT NOT NULL,
+                    FOREIGN KEY (reading_id) REFERENCES BookReadingHistories(id),
+                    FOREIGN KEY (user_id) REFERENCES Users(id)
+                );
+            ''')
         except Exception as e:
             print("Error creating chat histories table: ", e)
             raise e
-        
+
+
     def create_book_history_table(self):
         """
         Book Reading History table
@@ -128,8 +130,8 @@ class DatabaseDriver(object):
         
         try:
             self.c.execute(
-            '''CREATE TABLE IF NOT EXISTS BookReadingHistories  (
-                reading_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            '''CREATE TABLE IF NOT EXISTS BookReadingHistories(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 book_title TEXT NOT NULL,
                 current_chapter INTEGER NOT NULL,
                 current_page INTEGER NOT NULL,
@@ -147,12 +149,12 @@ class DatabaseDriver(object):
         """
         try:
             self.c.execute('''
-                CREATE TABLE IF NOT EXISTS BooksHistoryAssociation (
+                CREATE TABLE IF NOT EXISTS BooksHistoryAssociation(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     book_id INTEGER NOT NULL,
                     reading_id INTEGER NOT NULL,
-                    FOREIGN KEY (book_id) REFERENCES Books(book_id),
-                    FOREIGN KEY (reading_id) REFERENCES BookReadingHistories(reading_id)
+                    FOREIGN KEY (book_id) REFERENCES Books(id),
+                    FOREIGN KEY (reading_id) REFERENCES BookReadingHistories(id)
                 );'''
             )
         except Exception as e:
