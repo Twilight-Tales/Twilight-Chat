@@ -1,6 +1,7 @@
 .idea
 *.secrets
 .DS_Store
+books/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
