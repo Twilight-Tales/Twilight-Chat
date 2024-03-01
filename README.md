@@ -49,6 +49,7 @@ docker run -v $(pwd):/app --env-file ./.env -p 1680:1680 --add-host=host.docker.
 python -m chainlit run /app/app.py -h --port 1680 -w
 ```
 
+4. Run in pure python env:
 Create and activate your python virtual env:
 ```bash
 python -m venv .venv
@@ -60,10 +61,38 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-3. Run chainlit chatbot:
+Run chainlit chatbot:
 
 ```bash
 chainlit run app.py -w
+```
+
+5. Deploy on k8s:
+
+Create k8s secrets from `.env` file:
+```bash
+kubectl create secret generic twilight-secret --from-env-file=.env
+```
+
+push image to registry:
+```bash
+docker tag twilight quay.io/twilight_chat/twilight_chat
+docker push quay.io/twilight_chat/twilight_chat
+```
+
+run this will create both app and service
+```bash
+kubectl apply -f twilight-app-k8s.yaml
+```
+
+port forward to host:
+```bash
+kubectl port-forward service/twilight-service 1680:1680
+```
+
+port forward in background:
+```bash
+kubectl port-forward service/twilight-service 1680:1680 > /dev/null 2>&1 &
 ```
 
 ## Contributing
