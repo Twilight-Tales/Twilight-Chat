@@ -1,21 +1,10 @@
-import os
-
-from langchain_community.chat_models import ChatOpenAI
-from langchain_community.llms import VLLMOpenAI
-
 import chainlit as cl
+from chainlit.types import ThreadDict
 
-from typing import Any, Dict, List, Optional
-from langchain.schema import BaseMemory
-from pydantic import BaseModel
+from chatbot import setup_openai, setup_mistral, setup_llama
 
-from langchain.chains import ConversationChain
-from langchain.memory import (
-    CombinedMemory,
-    ConversationBufferMemory,
-)
-
-from langchain.prompts import PromptTemplate
+from langchain.memory import ConversationBufferMemory
+from langchain.schema.runnable.config import RunnableConfig
 
 from dotenv import load_dotenv
 
@@ -26,33 +15,9 @@ str_mistral = "Mistral"
 str_llama = "Llama"
 
 llm_dict = {
-    str_gpt4: ChatOpenAI(streaming=True,
-                         temperature=0,
-                         model_name="gpt-4-1106-preview"),
-    str_mistral: VLLMOpenAI(
-        openai_api_key="EMPTY",
-        # openai_api_base="http://host.docker.internal:8000/v1",
-        openai_api_base=os.environ.get('VLLM_URL'),
-        model_name=os.environ.get('MISTRAL_ID'),
-        model_kwargs={"stop": ['\nHuman:', 'Elderly:',
-                               '\nElderly:'
-                               '\n```\n',
-                               '<<END>>',
-                               '</s>',
-                               '\n\n']},
-    ),
-    str_llama: VLLMOpenAI(
-        openai_api_key="EMPTY",
-        # openai_api_base="http://host.docker.internal:8000/v1",
-        openai_api_base=os.environ.get('VLLM_URL'),
-        model_name=os.environ.get('LLAMA_ID'),
-        model_kwargs={"stop": ['\nHuman:', 'Elderly:',
-                               '\nElderly:'
-                               '\n```\n',
-                               '<<END>>',
-                               '</s>',
-                               '\n\n']},
-    )
+    str_gpt4: setup_openai,
+    str_mistral: setup_mistral,
+    str_llama: setup_llama
 }
 
 
@@ -80,55 +45,36 @@ async def chat_profile():
 @cl.on_chat_start
 async def on_chat_start():
     llm_choice = cl.user_session.get("chat_profile")
-    llm = llm_dict[llm_choice]
-    template = """
-Objective: You are the host of a bookclub that helps elderly people with dementia. 
-You have to prompt them and see whether or not they fully understand the content of the book. 
-Context will be provided and generate prompts based on that. 
-Ask open-ended questions but make sure that a 5th grader could answer them. 
-After a conversation has concluded, ask a question relating to the book again and then move on to the next chapter. 
-Make sure that it prompts the user to want to read the next chapter. 
-Tailor it to elderly people. 
-Only ask one question per time and keep them less than or equal to 2 sentences. 
-Pause and wait for the user to give a response to the question, then analyze the response given by the elderly person and provide feedback as well as the next question.
-
-Book chapter:
-{chapter_context}
-
-Current conversation:
-{chat_history}
-Elderly: {input}
-Host:"""
-    prompt = PromptTemplate(
-        input_variables=["chat_history", "input", "chapter_context"], template=template
-    )
-
-    with open("books.txt", "r") as fp:
-        book = fp.read()
-
-    partial_prompt = prompt.partial(chapter_context=book)
-
-    memory = ConversationBufferMemory(llm=llm,
-                                      memory_key="chat_history", input_key="input",
-                                      human_prefix="Elderly", ai_prefix="Host")
-
-    # book_memory = BookMemory(input_key="input")
-    # # Combined: use multiple memories
-    # # https://python.langchain.com/docs/modules/memory/multiple_memory
-    # memory = CombinedMemory(memories=[conv_memory, book_memory])
-
-    conversation = ConversationChain(llm=llm, verbose=True, memory=memory, prompt=partial_prompt)
-
-    cl.user_session.set("chain", conversation)
+    if llm_choice == str_gpt4:
+        memory = ConversationBufferMemory(memory_key="history", input_key="input",
+                                          human_prefix="Elderly", ai_prefix="Host",
+                                          return_messages=True)
+    else:
+        memory = ConversationBufferMemory(memory_key="history", input_key="input",
+                                          human_prefix="Elderly", ai_prefix="Host",
+                                          return_messages=False)
+    cl.user_session.set("memory", memory)
+    llm_dict[llm_choice]()
 
 
 @cl.on_message
 async def on_message(message: cl.Message):
-    chain = cl.user_session.get("chain")  # type: ConversationChain
-    res = await chain.arun(
-        message.content, callbacks=[cl.AsyncLangchainCallbackHandler()]
-    )
-    await cl.Message(content=res).send()
+    memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
+
+    runnable = cl.user_session.get("runnable")  # type: Runnable
+
+    res = cl.Message(content="")
+
+    async for chunk in runnable.astream(
+        {"input": message.content},
+        config=RunnableConfig(callbacks=[cl.LangchainCallbackHandler()]),
+    ):
+        await res.stream_token(chunk)
+
+    await res.send()
+
+    memory.chat_memory.add_user_message(message.content)
+    memory.chat_memory.add_ai_message(res.content)
 
 # @cl.password_auth_callback
 # def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
