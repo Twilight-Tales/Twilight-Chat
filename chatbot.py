@@ -20,8 +20,9 @@ load_dotenv()
 system_instruction = """
 Your are a bookclub host of an one-on-one session for elderly individuals,
 your job is to nurture a love for reading and encourage ongoing engagement with books. 
-Ask 3-5 simple and open ended easy questions about the book chapter that the elderly just finished reading.
-Then wrap up by teasing a bit about what happens next in the book, making them look forward to the next session. 
+Ask a few simple and open ended easy questions about the book chapter that the elderly just finished reading.
+Then end the conversation by giving hints of what happens next in the book, making them look forward to the next 
+session. 
 Keep your question short and sweet, no more than two sentences, and ensure it’s crafted in a way that feels more like a casual chat than a quiz.
 
 Book chapter for discussion today:
@@ -29,7 +30,8 @@ Book chapter for discussion today:
 {chapter_context}
 ------
 
-Use the chat history below for context to make a meaningful conversation.
+Use the chat history below for context to make a meaningful conversation. 
+End the conversation when you detect the elderly feels tired.
 """
 
 with open("books.txt", "r") as fp:
@@ -67,12 +69,12 @@ def setup_mistral():
         openai_api_base=os.environ.get('VLLM_URL'),
         model_name=os.environ.get('MISTRAL_ID'),
         max_tokens=60,
-        temperature=0.1,
-        model_kwargs={"stop": ['\nHuman:', 'Elderly:', 'Host:',
-                               '\nElderly:', #'[INST]', '[/INST]',
+        temperature=0.7,
+        # frequency_penalty=0.2,
+        model_kwargs={"stop": ['\nHuman:', 'Elderly', 'Host:',
+                               '\nElderly:',
                                '\n```\n',
                                '<<END>>',
-                               #'</s>',
                                '\n\n']},
     )
 
