@@ -180,14 +180,49 @@ class DatabaseDriver(object):
     #Getting Most Recent Book History 
     # user id --> most recent chat history --> return most recent book history ?
     
-    def get_user_by_id(self):
-        pass
+    def get_user_by_id(self, user_id):
+        """
+        Return a user based on the session id given
+        """
+        cursor = self.c.execute("SELECT * FROM Users WHERE id = ?", (user_id))
+        for row in cursor:
+            return ({"id": row[0], "name": row[1]})
+        return "Error", None 
     
-    def get_chat_history(self):
-        pass
+    def get_chat_histories(self, user_id = None, chat_id = None):
+        """
+        Get all chat histories based on the user id or chat_id given
+        """
+        cursor = None
+        if(user_id != None):
+            cursor = self.c.execute("SELECT * FROM ChatHistories WHERE user_id = ?", (user_id))
+        elif(chat_id != None):
+            cursor = self.c.execute("SELECT * FROM ChatHistories WHERE id = ?", (chat_id))
+        
+        if cursor == None:
+            return "Error", None
+           
+        chs = []
+        for row in cursor:
+            chs.append({"id": row[0], "timestamp": row[1], "reading id": row[2]})
+        return "Success", chs
 
-    def get_book_history(self):
-        pass
+    def get_book_history(self, book_id = None, bh_id = None ):
+        """
+        Return a book history based on a given book id or book history id
+        """
+        cursor = None
+        if bh_id != None:
+            cursor = self.c.execute("SELECT * FROM BookHistories WHERE id = ?", (bh_id))
+        if book_id != None:
+            cursor = self.c.execute("SELECT * FROM BookHistories WHERE book_id = ?", (book_id))
+        if cursor == None:
+            return "Error", None
+        bhs = []
+        for row in cursor:
+            bhs.append({"id": row[0], "book title": row[1], "current chapter": row[2], "current page": row[3], "timestamp": row[4]})
+        return bhs
+    
 
     def create_user(self, username, password):
         """
@@ -220,6 +255,8 @@ class DatabaseDriver(object):
             return True, user
         else:
             return False, None 
+        
+    #TODO: add more create stuff 
     
 
 
