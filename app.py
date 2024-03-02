@@ -47,7 +47,7 @@ host:"""
         input_variables=["chat_history", "input", "chapter_context"], template=template
     )
 
-    with open("books.txt", "r", encoding='utf-8') as fp:
+    with open("books/alice.txt", "r", encoding='utf-8') as fp:
         book = fp.read()
 
     partial_prompt = prompt.partial(chapter_context=book)
@@ -74,14 +74,14 @@ async def on_message(message: cl.Message):
     )
     await cl.Message(content=res).send()
 
-@cl.password_auth_callback
-async def auth_callback(username: str, password: str):
-    # Fetch the user matching username from your database
-    # and compare the hashed password with the value stored in the database
-    success, user = DB.login_user(username, password)
-    if success:
-        return cl.User(
-            identifier=user.user_id, metadata={"role": "Patient", "provider": user.password}
-        )
-    else:
-        return None
+# @cl.password_auth_callback
+# async def auth_callback(username: str, password: str):
+#     # Fetch the user matching username from your database
+#     # and compare the hashed password with the value stored in the database
+#     success, user = DB.login_user(username, password)
+#     if success:
+#         return cl.User(
+#             identifier=user.user_id, metadata={"role": "Patient", "provider": user.password}
+#         )
+#     else:
+#         return None
