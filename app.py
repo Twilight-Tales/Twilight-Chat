@@ -73,8 +73,8 @@ async def on_message(message: cl.Message):
 
     await res.send()
 
-    memory.chat_memory.add_user_message(message.content)
-    memory.chat_memory.add_ai_message(res.content)
+    memory.chat_memory.add_user_message(message.content.strip())
+    memory.chat_memory.add_ai_message(res.content.strip())
 
 # @cl.password_auth_callback
 # def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
