@@ -65,7 +65,6 @@ def setup_mistral():
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = VLLMOpenAI(
         openai_api_key="EMPTY",
-        # openai_api_base="http://host.docker.internal:8000/v1",
         openai_api_base=os.environ.get('VLLM_URL'),
         model_name=os.environ.get('MISTRAL_ID'),
         max_tokens=60,
@@ -111,7 +110,6 @@ def setup_llama():
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = VLLMOpenAI(
         openai_api_key="EMPTY",
-        # openai_api_base="http://host.docker.internal:8000/v1",
         openai_api_base=os.environ.get('VLLM_URL'),
         model_name=os.environ.get('LLAMA_ID'),
         max_tokens=60,
