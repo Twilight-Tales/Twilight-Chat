@@ -16,14 +16,13 @@ import os
 
 load_dotenv()
 
-
 system_instruction = """
 Your are a bookclub host of an one-on-one session for elderly individuals,
 your job is to nurture a love for reading and encourage ongoing engagement with books. 
 Ask a few simple and open ended easy questions about the book chapter that the elderly just finished reading.
-Then end the conversation by giving hints of what happens next in the book, making them look forward to the next 
-session. 
-Keep your question short and sweet, no more than two sentences, and ensure it’s crafted in a way that feels more like a casual chat than a quiz.
+Then end the conversation by giving hints of what happens next in the book, making them look forward to the next session. 
+Keep your question short and sweet, no more than two sentences, 
+and ensure it’s crafted in a way that feels more like a casual chat than a quiz.
 
 Book chapter for discussion today:
 ------
@@ -33,6 +32,13 @@ Book chapter for discussion today:
 Use the chat history below for context to make a meaningful conversation. 
 End the conversation when you detect the elderly feels tired.
 """
+
+stop_tokens = ['\nHuman:',
+               '\nElderly:',
+               '\n```\n',
+               '<<END>>',
+               '\n\n',
+               '</s>']
 
 with open("books.txt", "r") as fp:
     book = fp.read()
@@ -52,11 +58,11 @@ def setup_openai():
     )
 
     runnable = (
-        {"chapter_context": RunnableLambda(lambda x: book), "input": itemgetter("input")}
-        | RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
-        | prompt
-        | model
-        | StrOutputParser()
+            {"chapter_context": RunnableLambda(lambda x: book), "input": itemgetter("input")}
+            | RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
+            | prompt
+            | model
+            | StrOutputParser()
     )
     cl.user_session.set("runnable", runnable)
 
@@ -70,11 +76,7 @@ def setup_mistral():
         max_tokens=60,
         temperature=0.7,
         # frequency_penalty=0.2,
-        model_kwargs={"stop": ['\nHuman:', 'Elderly', 'Host:',
-                               '\nElderly:',
-                               '\n```\n',
-                               '<<END>>',
-                               '\n\n']},
+        model_kwargs={"stop": stop_tokens},
     )
 
     prompt = PromptTemplate(
@@ -83,11 +85,11 @@ def setup_mistral():
     )
 
     runnable = (
-        {"chapter_context": RunnableLambda(lambda x: book[:200]), "input": itemgetter("input")}
-        | RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
-        | prompt
-        | model
-        | StrOutputParser()
+            {"chapter_context": RunnableLambda(lambda x: book[:200]), "input": itemgetter("input")}
+            | RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
+            | prompt
+            | model
+            | StrOutputParser()
     )
     cl.user_session.set("runnable", runnable)
 
@@ -114,12 +116,7 @@ def setup_llama():
         model_name=os.environ.get('LLAMA_ID'),
         max_tokens=60,
         temperature=0.1,
-        model_kwargs={"stop": ['\nHuman:', 'Elderly:',
-                               '\nElderly:'
-                               '\n```\n',
-                               '<<END>>',
-                               '</s>',
-                               '\n\n']},
+        model_kwargs={"stop": stop_tokens},
     )
 
     prompt = PromptTemplate(
@@ -149,3 +146,23 @@ def setup_llama():
             is_chat=False
         )
     )
+
+
+def remove_matching_suffix(target_string, match_list):
+    """
+    Remove any suffix from the target_string that matches any of the items in match_list.
+
+    Parameters:
+    - target_string: The string to be processed.
+    - match_list: A list of strings to check against the end of target_string.
+
+    Returns:
+    - The processed string with the matching suffix removed, if found.
+    """
+    for match in match_list:
+        # Check if the target_string ends with the current item from match_list
+        if target_string.endswith(match):
+            # Remove the matching part from the end of target_string
+            return target_string[:-len(match)]
+    # Return the original string if no match is found
+    return target_string

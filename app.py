@@ -1,7 +1,7 @@
 import chainlit as cl
 from chainlit.types import ThreadDict
 
-from chatbot import setup_openai, setup_mistral, setup_llama
+from chatbot import setup_openai, setup_mistral, setup_llama, remove_matching_suffix, stop_tokens
 
 from langchain.memory import ConversationBufferMemory
 from langchain.schema.runnable.config import RunnableConfig
@@ -47,7 +47,6 @@ async def on_chat_start():
     llm_choice = cl.user_session.get("chat_profile")
     if llm_choice == str_gpt4:
         memory = ConversationBufferMemory(memory_key="history", input_key="input",
-                                          human_prefix="Elderly", ai_prefix="Host",
                                           return_messages=True)
     else:
         memory = ConversationBufferMemory(memory_key="history", input_key="input",
@@ -66,7 +65,7 @@ async def on_message(message: cl.Message):
     res = cl.Message(content="")
 
     async for chunk in runnable.astream(
-        {"input": message.content},
+        {"input": message.content.strip()},
         config=RunnableConfig(callbacks=[cl.LangchainCallbackHandler()]),
     ):
         await res.stream_token(chunk)
@@ -74,7 +73,7 @@ async def on_message(message: cl.Message):
     await res.send()
 
     memory.chat_memory.add_user_message(message.content.strip())
-    memory.chat_memory.add_ai_message(res.content.strip())
+    memory.chat_memory.add_ai_message(remove_matching_suffix(res.content.strip(), stop_tokens))
 
 # @cl.password_auth_callback
 # def auth_callback(username: str, password: str) -> Optional[cl.AppUser]:
