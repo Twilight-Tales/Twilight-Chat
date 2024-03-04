@@ -150,19 +150,25 @@ def setup_llama():
 
 def remove_matching_suffix(target_string, match_list):
     """
-    Remove any suffix from the target_string that matches any of the items in match_list.
+    Remove a suffix from the target_string that partially matches the beginning of any of the items in match_list.
+
+    This function assumes that the match at the end of target_string is always a start part of a token from match_list.
+
+    Example:
+    `This is a test Human string with \n\n\nElder` will become `This is a test Human string with \n\n'
 
     Parameters:
     - target_string: The string to be processed.
-    - match_list: A list of strings to check against the end of target_string.
+    - match_list: A list of strings (tokens) to check against the end of target_string for start-of-token matches.
 
     Returns:
-    - The processed string with the matching suffix removed, if found.
+    - The processed string with the start-of-token matching suffix removed, if found.
     """
     for match in match_list:
-        # Check if the target_string ends with the current item from match_list
-        if target_string.endswith(match):
-            # Remove the matching part from the end of target_string
-            return target_string[:-len(match)]
+        # Check each match starting from the longest potential match to the shortest
+        for i in range(len(match), 0, -1):
+            if target_string.endswith(match[:i]):
+                # If a partial start-of-token match is found, remove it from the end of target_string
+                return target_string[:-i]
     # Return the original string if no match is found
     return target_string
