@@ -110,6 +110,11 @@ port forward in background:
 kubectl port-forward service/twilight-service 1680:1680 > /dev/null 2>&1 &
 ```
 
+confirm port forwarding works:
+```bash
+ps aux | grep 'kubectl port-forward'
+```
+
 6. Some of the commands above are included in the Makefile for your convenience. For example:
 
 Build the docker image:

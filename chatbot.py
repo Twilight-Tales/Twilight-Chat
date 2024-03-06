@@ -85,7 +85,8 @@ def setup_mistral():
     )
 
     runnable = (
-            {"chapter_context": RunnableLambda(lambda x: book[:200]), "input": itemgetter("input")}
+            # noted that we are truncating the book length. MISTRAL's context window=8k
+            {"chapter_context": RunnableLambda(lambda x: book[:6000]), "input": itemgetter("input")}
             | RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
             | prompt
             | model
@@ -125,7 +126,8 @@ def setup_llama():
     )
 
     runnable = (
-            {"chapter_context": RunnableLambda(lambda x: book), "input": itemgetter("input")}
+            # noted that we are truncating the book length. llama2's context window=4k
+            {"chapter_context": RunnableLambda(lambda x: book[:3000]), "input": itemgetter("input")}
             | RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
             | prompt
             | model
