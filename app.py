@@ -11,13 +11,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 str_gpt4 = "GPT-4"
-str_mistral = "Mistral"
-str_llama = "Llama"
+# str_mistral = "Mistral"
+str_llama_7b = "Llama2_7B"
+str_llama_7bq = "7B_GPTQ"
+str_llama_13bq = "13B_GPTQ"
 
 llm_dict = {
     str_gpt4: setup_openai,
-    str_mistral: setup_mistral,
-    str_llama: setup_llama
+    # str_mistral: setup_mistral,
+    str_llama_7b: setup_llama,
+    str_llama_7bq: setup_llama,
+    str_llama_13bq: setup_llama
+}
+
+llm_args_dict = {
+    str_gpt4: {'api_url': 'https://api.openai.com/v1/chat/completions', 'model_name': "gpt-4-1106-preview"},
+    # str_mistral: {'api_url': 'MISTRAL_URL', 'model_name': 'MISTRAL_ID'},  # Uncomment and define if used
+    str_llama_7b: {'api_url': "Llama2_7B_URL", 'model_name': "Llama2_7B_ID"},
+    str_llama_7bq: {'api_url': "Llama2_7B_GPTQ_URL", 'model_name': "Llama2_7B_GPTQ_ID"},
+    str_llama_13bq: {'api_url': "Llama2_13B_GPTQ_URL", 'model_name': "Llama2_13B_GPTQ_ID"}
 }
 
 
@@ -27,17 +39,22 @@ async def chat_profile():
         cl.ChatProfile(
             name=str_gpt4,
             markdown_description="The underlying LLM model is **GPT-4**.",
+            icon="https://picsum.photos/100",
+        ),
+        cl.ChatProfile(
+            name=str_llama_7b,
+            markdown_description="The underlying LLM model is **Llama-7B-chat**.",
+            icon="https://picsum.photos/200",
+        ),
+        cl.ChatProfile(
+            name=str_llama_7bq,
+            markdown_description="The underlying LLM model is **Llama-7B-chat-GPTQ**.",
             icon="https://picsum.photos/250",
         ),
         cl.ChatProfile(
-            name=str_mistral,
-            markdown_description="The underlying LLM model is **Mistral-7B-Instruct-v0.1**.",
-            icon="https://picsum.photos/150",
-        ),
-        cl.ChatProfile(
-            name=str_llama,
-            markdown_description="The underlying LLM model is **Llama-13B-chat**.",
-            icon="https://picsum.photos/200",
+            name=str_llama_13bq,
+            markdown_description="The underlying LLM model is **Llama-13B-chat-GPTQ**.",
+            icon="https://picsum.photos/300",
         ),
     ]
 
@@ -53,7 +70,7 @@ async def on_chat_start():
                                           human_prefix="Elderly", ai_prefix="Host",
                                           return_messages=False)
     cl.user_session.set("memory", memory)
-    llm_dict[llm_choice]()
+    llm_dict[llm_choice](**llm_args_dict[llm_choice])
 
 
 @cl.on_message

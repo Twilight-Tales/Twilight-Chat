@@ -44,11 +44,11 @@ with open("books.txt", "r") as fp:
     book = fp.read()
 
 
-def setup_openai():
+def setup_openai(api_url='https://api.openai.com/v1/chat/completions', model_name="gpt-4-1106-preview"):
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = ChatOpenAI(streaming=True,
                        temperature=0.1,
-                       model_name="gpt-4-1106-preview")
+                       model_name=model_name)
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_instruction),
@@ -67,13 +67,13 @@ def setup_openai():
     cl.user_session.set("runnable", runnable)
 
 
-def setup_mistral():
+def setup_mistral(api_url='MISTRAL_URL', model_name='MISTRAL_ID'):
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = VLLMOpenAI(
         openai_api_key="EMPTY",
-        openai_api_base=os.environ.get('MISTRAL_URL'),
-        model_name=os.environ.get('MISTRAL_ID'),
-        max_tokens=60,
+        openai_api_base=os.environ.get(api_url),
+        model_name=os.environ.get(model_name),
+        max_tokens=100,
         temperature=0.7,
         # frequency_penalty=0.2,
         model_kwargs={"stop": stop_tokens},
@@ -100,7 +100,7 @@ def setup_mistral():
             # It is important that the id of the provider matches the _llm_type
             id=model._llm_type,
             # The name is not important. It will be displayed in the UI.
-            name=os.environ.get('MISTRAL_ID'),
+            name=os.environ.get(model_name),
             # This should always be a Langchain llm instance (correctly configured)
             llm=model,
             # If the LLM works with messages, set this to True
@@ -109,14 +109,14 @@ def setup_mistral():
     )
 
 
-def setup_llama():
+def setup_llama(api_url='LLAMA_URL', model_name='LLAMA_ID'):
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = VLLMOpenAI(
         openai_api_key="EMPTY",
-        openai_api_base=os.environ.get('LLAMA_URL'),
-        model_name=os.environ.get('LLAMA_ID'),
-        max_tokens=60,
-        temperature=0.1,
+        openai_api_base=os.environ.get(api_url),
+        model_name=os.environ.get(model_name),
+        max_tokens=100,
+        temperature=0.7,
         model_kwargs={"stop": stop_tokens},
     )
 
@@ -141,7 +141,7 @@ def setup_llama():
             # It is important that the id of the provider matches the _llm_type
             id=model._llm_type,
             # The name is not important. It will be displayed in the UI.
-            name=os.environ.get('LLAMA_ID'),
+            name=os.environ.get(model_name),
             # This should always be a Langchain llm instance (correctly configured)
             llm=model,
             # If the LLM works with messages, set this to True

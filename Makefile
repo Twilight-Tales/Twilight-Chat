@@ -37,7 +37,7 @@ create-app:
 update-app: build push
 	kubectl rollout restart deployment twilight-deployment
 	kubectl rollout status deployment/twilight-deployment --timeout=120s
-	sleep 1
+	sleep 5
 	kubectl port-forward service/twilight-service $(APP_PORT):$(APP_PORT) > /dev/null 2>&1 &
 
 # Clean up artifacts
