@@ -27,9 +27,9 @@ llm_dict = {
 llm_args_dict = {
     str_gpt4: {'api_url': 'https://api.openai.com/v1/chat/completions', 'model_name': "gpt-4-1106-preview"},
     # str_mistral: {'api_url': 'MISTRAL_URL', 'model_name': 'MISTRAL_ID'},  # Uncomment and define if used
-    str_llama_7b: {'api_url': "Llama2_7B_URL", 'model_name': "Llama2_7B_ID"},
-    str_llama_7bq: {'api_url': "Llama2_7B_GPTQ_URL", 'model_name': "Llama2_7B_GPTQ_ID"},
-    str_llama_13bq: {'api_url': "Llama2_13B_GPTQ_URL", 'model_name': "Llama2_13B_GPTQ_ID"}
+    str_llama_7b: {'api_url': "vLLM_URL", 'model_name': "Llama2_7B_ID"},
+    str_llama_7bq: {'api_url': "vLLM_URL", 'model_name': "Llama2_7B_GPTQ_ID"},
+    str_llama_13bq: {'api_url': "vLLM_URL", 'model_name': "Llama2_13B_GPTQ_ID"}
 }
 
 

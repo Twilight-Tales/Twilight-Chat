@@ -67,7 +67,7 @@ def setup_openai(api_url='https://api.openai.com/v1/chat/completions', model_nam
     cl.user_session.set("runnable", runnable)
 
 
-def setup_mistral(api_url='MISTRAL_URL', model_name='MISTRAL_ID'):
+def setup_mistral(api_url='vLLM_URL', model_name='MISTRAL_ID'):
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = VLLMOpenAI(
         openai_api_key="EMPTY",
@@ -109,7 +109,7 @@ def setup_mistral(api_url='MISTRAL_URL', model_name='MISTRAL_ID'):
     )
 
 
-def setup_llama(api_url='LLAMA_URL', model_name='LLAMA_ID'):
+def setup_llama(api_url='vLLM_URL', model_name='LLAMA_ID'):
     memory = cl.user_session.get("memory")  # type: ConversationBufferMemory
     model = VLLMOpenAI(
         openai_api_key="EMPTY",
